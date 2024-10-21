@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .memory-item {
+            /* border: 1px solid #ccc; */
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        mark {
+            background-color: yellow;
+            font-weight: bold;
+        }
+
+        body {
+            background-color: #f4f4f4;
+        }
+        #chat-container {
+            display: flex;
+            margin: 50px auto;
+            max-width: 80%;
+        }
+        #chat-list {
+            width: 20%;
+            margin-right: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            padding: 10px;
+        }
+        #chat-box {
+            width: 80%;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            padding: 10px;
+            position: relative; /* 为浮动框提供相对定位 */
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            max-width: 75%;
+            position: relative;
+        }
+        .message.user {
+            background-color: #dcf8c6;
+            margin-left: auto;
+            text-align: left;
+        }
+        .message.assistant {
+            background-color: #f1f0f0;
+            text-align: left;
+        }
+        #message-form {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        #message-form input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #message-form button {
+            width: 15%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        .memory-type-item {
+            display: inline-block;
+        }
+        .chat-link {
+            display: block;
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #000;
+        }
+        .chat-link:hover {
+            background-color: #e2e6ea;
+        }
+        .active-chat {
+            background-color: #28a745;
+            color: #fff;
+        }
+        /* 浮动框样式 */
+        #plugin-container {
+            display: none;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            border-radius: 10px;
+            
+            z-index: 1000;
+            padding: 15px;
+        }
+        input[type="checkbox"] {
+            width: 30px;
+            height: 30px;
+        }
+        #privacy-container, #used-memory-container {
+            margin-bottom: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        .privacy-item:hover{
+            background-color: #DCF8C0
+        }
+        
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+</head>
+<body>
+    <div id="plugin-container" style="display:none; max-height: 700px; overflow-y:auto; top:50px; left:50px; width:300px; padding:20px;">
+        <!-- Memory Generation Stage -->
+    </div>
+    <div id="new-memory-container" style="display:none; position:fixed; top:50px; right:450px; width:500px; padding:20px; z-index: 999;background:white; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); border-radius:5px;">
+        <select id="group" value="1">
+            <option value="1">Dimond</option>
+            <option value="2">vertical</option>
+        </select>
+        <input type="text" placeholder="New Memory" style="border: 1px solid #ccc; padding: 5px; border-radius: 5px;">
+        <button type="button" id="add-memory-button">Add Memory</button>
+        <button type="button" id="close-plugin">Close</button>
+    </div>
+    <div id="past-memory-container" style="display:none;height: 700px;overflow-y:auto; position:fixed; top:50px; left:50px; width:300px; padding:20px; background:white; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); border-radius:5px;">使用过往记忆
+    </div>
+    <button type="button" id="finish-button" style="display:none; position:fixed; bottom:50px; right:50px;z-index: 999;">Finish</button>
+    
+    <div id="chat-container">
+        <div id="chat-list">
+            <h4>Chats</h4>
+            {% for chat in chat_list %}
+            <a href="{{ url_for('chat', chat_name=chat) }}" 
+               class="chat-link {% if selected_chat == chat %}active-chat{% endif %}">
+                {{ chat }}
+            </a>
+            {% endfor %}
+            <form method="POST">
+                <input type="text" name="new_chat_name" placeholder="New chat name" class="form-control my-2" required>
+                <button type="submit" class="btn btn-primary btn-block">Start New Chat</button>
+            </form>
+        </div>        
+        <div id="chat-box" style="min-height: 300px;">
+            <h4>{{ selected_chat }}</h4>
+            <div id="messages">
+                {% for conversation in conversations %}
+                    {% if conversation.role == "assistant" %}
+                        <div class="message assistant">
+                            {{ conversation.message | safe }}
+                        </div>
+                    {% elif conversation.role == "user" %}
+                        <div class="message user" contenteditable="true" data-message-id="{{ loop.index }}">
+                            {{ conversation.message | safe }}
+                            <div class="edit-message-buttons">
+                                <button onclick="saveEditedMessage(this)">Save</button>
+                                <button onclick="cancelEdit(this)">Cancel</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <form id="message-form" onsubmit="return false;">
+                <input type="hidden" name="chat_name" value="{{ selected_chat }}">
+                <input type="text" id="message-input" name="message" placeholder="Type your message..." required>
+                <button type="button" id="send-button">Send</button>
+            </form>
+            
+        </div>
+    </div>
+
+    <script>
+    document.getElementById('message-input').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();  // 阻止默认行为（即阻止发送消息或提交表单）
+            // 如果你想在回车键按下时插入一个换行符，可以手动插入换行符
+            this.value += '\n';
+        }
+    });
+
+    function saveEditedMessage(button) {
+        const messageDiv = button.closest('.message.user');
+        const newText = messageDiv.innerText.trim();
+        const messageId = messageDiv.dataset.messageId;
+        const selectedChat = document.querySelector('#chat-box h4').innerText;  // 假设聊天标题中显示了selected_chat
+
+        fetch('/api/messages/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: messageId, text: newText, chat_name: selectedChat })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                console.log('Message updated:', data.message);
+                messageDiv.blur();  // 可选择的用户界面反馈
+            } else {
+                alert("Failed to update message.");
+            }
+        });
+    }
+
+    function cancelEdit(button) {
+        const messageDiv = button.closest('.message.user');
+        messageDiv.blur();  // 取消编辑模式
+    }
+
+    const pastMemoryContainer = document.getElementById('past-memory-container');
+    const colors = ["#FFBD7B", "#FFACAD", "#FAE85B", "#A5EECB", "#C6C5FE"]
+    let memoryList = {};
+    // deprecated
+    function displayPastMemory(memoryList) {
+        renderMemoryItems(memoryList);
+        console.log(Object.keys(memoryList), "keys");
+        const memoryDiv = document.querySelector('#new-memory');
+        memoryDiv.querySelector('svg').addEventListener('click', () => {
+            document.getElementById('new-memory-container').style.display = 'block';
+            console.log("click");
+
+        })
+        const newMemory = document.getElementById('new-memory-container');
+        newMemory.querySelector('#add-memory-button').addEventListener('click', () => {
+            const memoryType = newMemory.querySelector('#group').value;
+            const memoryText = newMemory.querySelector('input').value;
+            if(memoryList[memoryType]){
+                memoryList[memoryType].push(memoryText);
+            }
+            else{
+                memoryList[memoryType] = [memoryText];
+            }
+            console.log(memoryList);
+            renderMemoryItems(memoryList);
+            newMemory.style.display = 'none';
+        });
+        newMemory.querySelector('#close-plugin').addEventListener('click', () => {
+            newMemory.style.display = 'none';
+        });
+
+        document.querySelectorAll('.memoryType').forEach((phraseElement) => {
+            phraseElement.addEventListener('click', (event) => {
+                const type = event.target.innerText;
+
+                document.querySelectorAll('.memory-item').forEach((memoryElement) => {
+
+                const memoryPhrase = memoryElement.querySelector('.phrase').innerText;
+                // 找到 memoryPhrase 在memoryList中的key
+                const memoryType = Object.keys(memoryList).find(key => memoryList[key].includes(memoryPhrase));  
+                console.log(memoryType, type);
+                if (memoryType === type) {
+                    console.log(memoryElement);
+                    memoryElement.style.display = 'flex';
+                } else {
+                    memoryElement.style.display = 'none';
+                }
+                });
+            });
+        });
+    }
+    // deprecated
+    function renderMemoryItems(memoryList) {
+        pastMemoryContainer.innerHTML = '';
+        // 给key分配颜色
+        Object.keys(memoryList).forEach((type, index) => {
+            console.log(type)
+            const memoryDiv = document.createElement('div');
+            memoryDiv.className = 'memory-type-item';
+            memoryDiv.innerHTML = `
+                <span class="memoryType" contenteditable="true" style="background-color:${colors[index]};border: 1px solid #ccc; padding: 5px; border-radius: 5px;">${type}</span>
+            `;
+            pastMemoryContainer.appendChild(memoryDiv);
+        });
+
+        const memoryDiv = document.createElement('div');
+        memoryDiv.id = 'new-memory';
+        memoryDiv.className = 'memory-type-item';
+        memoryDiv.innerHTML = `
+        <svg width="30px" height="30px" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="17" height="17" rx="8.5" fill="#80E0FF"/>
+<path d="M12.284 7.125C12.4233 7.125 12.5572 7.1525 12.6855 7.2075C12.8138 7.2625 12.9238 7.33583 13.0155 7.4275C13.1072 7.51917 13.1805 7.62917 13.2355 7.7575C13.2905 7.88583 13.318 8.01967 13.318 8.159C13.318 8.30567 13.2905 8.44133 13.2355 8.566C13.1805 8.69067 13.1072 8.79883 13.0155 8.8905C12.9238 8.98217 12.8138 9.0555 12.6855 9.1105C12.5572 9.1655 12.4233 9.193 12.284 9.193H9.193V12.284C9.193 12.4307 9.1655 12.5663 9.1105 12.691C9.0555 12.8157 8.98217 12.9238 8.8905 13.0155C8.79883 13.1072 8.68883 13.1805 8.5605 13.2355C8.43217 13.2905 8.29833 13.318 8.159 13.318C8.01233 13.318 7.87667 13.2905 7.752 13.2355C7.62733 13.1805 7.51917 13.1072 7.4275 13.0155C7.33583 12.9238 7.2625 12.8157 7.2075 12.691C7.1525 12.5663 7.125 12.4307 7.125 12.284V9.193H4.034C3.88733 9.193 3.75167 9.1655 3.627 9.1105C3.50233 9.0555 3.39417 8.98217 3.3025 8.8905C3.21083 8.79883 3.1375 8.69067 3.0825 8.566C3.0275 8.44133 3 8.30567 3 8.159C3 8.01967 3.0275 7.88583 3.0825 7.7575C3.1375 7.62917 3.21083 7.51917 3.3025 7.4275C3.39417 7.33583 3.50233 7.2625 3.627 7.2075C3.75167 7.1525 3.88733 7.125 4.034 7.125H7.125V4.034C7.125 3.89467 7.1525 3.76083 7.2075 3.6325C7.2625 3.50417 7.33583 3.39417 7.4275 3.3025C7.51917 3.21083 7.62733 3.1375 7.752 3.0825C7.87667 3.0275 8.01233 3 8.159 3C8.445 3 8.68883 3.10083 8.8905 3.3025C9.09217 3.50417 9.193 3.748 9.193 4.034V7.125H12.284Z" fill="black"/>
+</svg>
+        `;
+        pastMemoryContainer.appendChild(memoryDiv);
+
+        Object.keys(memoryList).forEach((type, index) => {
+            memoryList[type].forEach((memory, memoryIndex) => {
+                const memoryDiv = document.createElement('div');
+                memoryDiv.className = 'memory-item';
+                memoryDiv.innerHTML = `
+                    <input type="checkbox"  checked />
+                    <div class="phrase" contenteditable="true" style="background-color:${colors[index]}; width:220px;border: 1px solid #ccc; padding: 5px; border-radius: 5px;">${memory}</div>
+                    <svg width="40px" height="40px" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2.125 2.125V10H8.875V2.125H2.125Z" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linejoin="round"/>
+<path d="M4.375 4.375V7.75" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6.625 4.375V7.75" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1 2.125H10" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.8125 2.125L4.50627 1H6.50767L7.1875 2.125H3.8125Z" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linejoin="round"/>
+</svg>
+
+                    `;
+                memoryDiv.querySelector('svg').addEventListener('click', () => {
+                memoryList[type] = memoryList[type].filter((_, i) => i !== memoryIndex);
+                memoryDiv.remove();
+            });
+                pastMemoryContainer.appendChild(memoryDiv);
+            });
+        });
+    }
+
+    function displayPrivacyItems(privacy, message) {
+        console.log(privacy);
+        const data = {
+            "Personal Basic Information": 4.240,
+            "Personal Identity Information": 5.790,
+            "Online Identity Identifier Information": 5.878,
+            "Personal Health Status and Physiological Information": 4.768,
+            "Personal Exercise Information": 3.327,
+            "Personal Education and Work Information": 5.069,
+            "Personal Property Information": 5.619,
+            "Identity Verification Information": 5.966,
+            "Personal Communication Information": 5.188,
+            "Contacts Information": 5.110,
+            "Personal Internet Browsing History": 5.122,
+            "Personal Location Information": 4.398,
+            "Other Personal Information": 3.946
+        };
+
+// // Function to map a value from 1-7 to a color from red (255, 0, 0) to black (0, 0, 0)
+// function getColorForValue(value) {
+//     // Normalize the value to a range of 0-1
+//     const normalizedValue = (value - 3.5) / (6.5 - 3.5);
+//     const red = Math.floor(255 * (1 - normalizedValue));
+//     const green = 0;
+//     const blue = 0;
+
+//     return `rgb(${red}, ${green}, ${blue})`;
+// }
+
+        const plugin_container = document.getElementById('plugin-container');
+        // 如果存在privacy-container，则删除
+        const pastPrivacyContainer = document.getElementById('privacy-container');
+        if (pastPrivacyContainer) {
+            pastPrivacyContainer.remove();
+        }
+        function getGradientColor(alpha, opacity) {
+            // 确保alpha在0到1之间
+            alpha = Math.max(0, Math.min(1, alpha));
+
+            // 纯蓝色：rgb(0, 0, 255)
+            // 纯红色：rgb(255, 0, 0)
+
+            // 计算红色分量
+            const red = Math.round(255 + (1 - alpha) * (109 - 255));
+            // 蓝色分量随alpha变化而变化
+            const green = Math.round(117 + (1 - alpha) * (172 - 117));
+            const blue = Math.round(117 + (1 - alpha) * (255 - 117));
+
+            // 返回CSS格式的颜色字符串
+            return `rgb(${red}, ${green}, ${blue}, ${opacity})`;
+        }
+        const privacyContainer = document.createElement('div');
+        privacyContainer.id = 'privacy-container';
+        privacy.forEach(item => {
+            let meanValue = 0;
+            if (data.hasOwnProperty(item.type)) {
+                meanValue = data[item.type];
+            }
+
+            let confidenceString = item.confidence || "100%"; // 如果没有置信度，默认是100%
+            let confidence = parseFloat(confidenceString.replace('%', '')) || 100; // 转换为数字，去掉百分号，如果转换失败则为100
+            const opacity = (confidence - 60) / 40; // 根据置信度设置透明度
+            // const colorIntensity = Math.floor(255 * (1 - opacity)); // 根据置信度设置颜色强度
+            
+            const normalizedValue = (meanValue - 3.5) / (6.5 - 3.5);
+            const backgroundColor = getGradientColor(normalizedValue, opacity)
+
+            const privacyItemDiv = document.createElement('div');
+            privacyItemDiv.className = 'privacy-item';
+            privacyItemDiv.style.backgroundColor = backgroundColor; // 设置背景颜色
+            // privacyItemDiv.style.color = color;
+            privacyItemDiv.style.opacity = opacity; // 设置透明度
+            privacyItemDiv.style.border = `1px solid rgba(255, 255, 153, ${opacity})`; // 设置边框颜色和透明度
+            privacyItemDiv.style.padding = "10px"; // 增加一些填充来让边框更明显
+            privacyItemDiv.style.borderRadius = "5px"; // 圆角边框
+            console.log(backgroundColor, opacity);
+            privacyItemDiv.innerHTML = `
+            <div>Confidence: ${item.confidence}</div>
+            <div>${item.privacy_info}</div>
+            `;
+            privacyContainer.appendChild(privacyItemDiv);
+            privacyItemDiv.addEventListener('click', () => {
+                const pastUsedMemoryContainer = document.getElementById('used-memory-container');
+                if (pastUsedMemoryContainer) {
+                    pastUsedMemoryContainer.remove();
+                }
+                const usedMemoryContainer = document.createElement('div');
+                usedMemoryContainer.id = 'used-memory-container';
+                const usedMemory = item.used_memory;
+                const usedUserInput = item.used_user_input;
+                usedMemory.forEach(memory => {
+                    const highlightedMemory = highlightText(memory.full, memory.shortened);
+        
+                    const usedMemoryDiv = document.createElement('div');
+                    usedMemoryDiv.innerHTML = `
+                    <div>Used Memory:</div>
+                    <span contenteditable="true" data-id="${memory.id}">${highlightedMemory}</span>
+                    <svg width="30px" height="30px" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2.125 2.125V10H8.875V2.125H2.125Z" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linejoin="round"/>
+<path d="M4.375 4.375V7.75" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6.625 4.375V7.75" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1 2.125H10" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.8125 2.125L4.50627 1H6.50767L7.1875 2.125H3.8125Z" stroke="#9C9C9C" stroke-opacity="0.5" stroke-linejoin="round"/>
+</svg>
+                    `;
+                    usedMemoryContainer.appendChild(usedMemoryDiv);
+                    usedMemoryDiv.querySelector('svg').addEventListener('click', () => {
+                        usedMemory.splice(usedMemory.indexOf(memory), 1);
+                        usedMemoryDiv.remove();
+                        updateMemoryOnServer(message, memory);
+                    });
+                });
+
+                highlightOriginalText(usedUserInput);
+                usedUserInput.forEach(userInput => {
+                    const highlightedInput = highlightText(userInput.full, userInput.shortened);
+        
+                    const usedUserInputDiv = document.createElement('div');
+                    usedUserInputDiv.innerHTML = `
+                        <div>Used User Input:</div>
+                        <div contenteditable="true" data-id="${userInput.id}">${highlightedInput}</div>
+                    `;
+                    usedMemoryContainer.appendChild(usedUserInputDiv);
+                });
+                plugin_container.appendChild(usedMemoryContainer);
+            });
+        });
+
+        const controlButtonsDiv = document.createElement('div');
+        controlButtonsDiv.style.marginTop = '20px';
+        controlButtonsDiv.innerHTML = `
+            <button type="button" id="submit-all-btn">Submit All</button>
+            <button type="button" id="close-btn">Close</button>
+        `;
+        privacyContainer.appendChild(controlButtonsDiv);
+
+        plugin_container.appendChild(privacyContainer);
+        plugin_container.style.display = 'block';
+        let changes = [];  
+        // Event listener for the Submit button
+        document.getElementById('submit-all-btn').addEventListener('click', () => {
+            const updatedInputs = document.querySelectorAll('[contenteditable="true"]');
+            updatedInputs.forEach(input => {
+                console.log(input);
+                const id = input.getAttribute('data-id');
+                const newText = input.innerText;
+                changes.push({ id, newText });
+            });
+
+            submitAllChanges(message, changes);  // Send all changes to the server
+            plugin_container.style.display = 'none';  // Simply hide the popup
+        });
+
+        // Event listener for the Close button
+        document.getElementById('close-btn').addEventListener('click', () => {
+            plugin_container.style.display = 'none';  // Simply hide the popup
+        });
+            
+    }
+
+    function displayMemoryItems(memorySuggestions, memoryList) {
+        const plugin_container = document.getElementById('plugin-container');
+        // let phraseDiv = document.getElementById('phrase');
+        // let confidenceBar = document.getElementById('confidence');
+        
+
+        
+        for (let i = 0; i < memorySuggestions.length; i++) {
+            const memoryItem = memorySuggestions[i];
+            const memoryItemDiv = document.createElement('div');
+            const type = memoryItem.type
+            const color = colors[Object.keys(memoryList).indexOf(type)]
+            memoryItemDiv.className = 'memory-item';
+            memoryItemDiv.innerHTML = `
+            <div id="memory-stage">
+                可信度：${memoryItem.confidence }%
+                <span class="type" style="background-color: ${color}">${type}</span>
+                <input type="checkbox" />
+                <div class="phrase" contenteditable="true" style="border: 1px solid #ccc; padding: 5px; border-radius: 5px;">${memoryItem.memoryText}</div>
+            </div>
+            `;
+            plugin_container.appendChild(memoryItemDiv);
+        }
+    }
+
+    // 高亮文本
+    function highlightOriginalText(memorySuggestions) {
+        // memorySuggestions是一个数组，元素是字符串，要高亮的文本
+        // 找到最后一个用户输入框
+        let messageInput = document.getElementsByClassName('message user')[document.getElementsByClassName('message user').length - 1];
+        console.log(messageInput);
+        let originalText = messageInput.innerText;
+        memorySuggestions.forEach(item => {
+            originalText = originalText.replace(item, `<mark>${item}</mark>`);
+        });
+        messageInput.innerHTML = originalText;    
+    }
+
+    document.getElementById('send-button').onclick = function(event) {
+        console.log("Send button clicked.");
+        const messageInput = document.querySelector('input[name="message"]');
+        const message = messageInput.value.trim();
+        
+        if (!message) {
+            alert("Message cannot be empty!");
+            return;
+        }
+
+        let chatNameInput = document.querySelector('input[name="chat_name"]');
+        let chatName = chatNameInput.value.trim();
+
+        // 如果没有选定的聊天名称，则用输入的前10个字作为聊天名称
+        if (!chatName) {
+            chatName = message.substring(0, 10);
+            chatNameInput.value = chatName;
+        }
+
+        // 以下代码发送消息和处理响应...
+        const messagesDiv = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        messageDiv.setAttribute('contenteditable', 'true');
+        messageDiv.setAttribute('data-message-id', messagesDiv.children.length);  // 假设按顺序排列
+        messageDiv.innerText = message;
+
+        const editButtonsDiv = document.createElement('div');
+        editButtonsDiv.className = 'edit-message-buttons';
+        editButtonsDiv.innerHTML = `
+            <button onclick="saveEditedMessage(this)">Save</button>
+            <button onclick="cancelEdit(this)">Cancel</button>
+        `;
+        messageDiv.appendChild(editButtonsDiv);
+        messagesDiv.appendChild(messageDiv);
+
+        const xhr = new XMLHttpRequest();
+        event.preventDefault(); 
+        xhr.open("POST", "{{ url_for('chatbot') }}", true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log("Received chat response.");
+                const response = JSON.parse(xhr.responseText).response;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message assistant';
+                messageDiv.innerText = response;
+                messagesDiv.appendChild(messageDiv);
+
+                // Check if chatName is empty and update it if necessary
+                // if (!chatName || chatName.trim() === "") {
+                //     chatName = JSON.parse(xhr.responseText).chat_name; // You can set this to any default name or value you prefer
+                //     console.log(`chatName was empty, updated to: ${chatName}`);
+                // }
+
+                const xhr0 = new XMLHttpRequest();
+                xhr0.open("POST", "{{ url_for('get_privacy') }}", true);
+                xhr0.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr0.onreadystatechange = function() {
+                    if (xhr0.readyState === 4 && xhr0.status === 200) {
+                        console.log("Received privacy response.");
+                        const response = JSON.parse(xhr0.responseText);
+                        if (Object.keys(response.privacy).length === 0) {
+                            console.log('Privacy object is empty, not rendering.');
+                        } else {
+                            displayPrivacyItems(response.privacy, message);
+                            document.getElementById('plugin-container').style.display = 'block';
+                        }
+                    }
+                };     
+                xhr0.send(`message=${encodeURIComponent(message)}&chat_name=${encodeURIComponent(chatName)}`);
+            }
+        };
+        xhr.send(`message=${encodeURIComponent(message)}&chat_name=${encodeURIComponent(chatName)}`);
+        
+        messageInput.value = '';
+        
+        const xhr1 = new XMLHttpRequest();
+        xhr1.open("POST", "{{ url_for('update_memory') }}", true);
+        xhr1.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr1.onreadystatechange = function() {
+            if (xhr1.readyState === 4 && xhr1.status === 200) {
+                console.log("Received memory update response.");
+                const response = JSON.parse(xhr1.responseText);
+                console.log(response);
+            }
+        };
+        xhr1.send(`message=${encodeURIComponent(message)}`);
+    }
+
+    // 双击修改原始文本
+    function modifyOriginalText(index) {
+        const messageInput = document.querySelector('input[name="message"]');
+        const newText = prompt("Modify the text:", messageInput.value);
+
+        if (newText) {
+            // 更新用户输入框中的文本
+            messageInput.value = newText;
+
+            // 更新后台的记忆信息
+            memorySuggestions[index].originalText = newText;
+        }
+    }
+
+    document.getElementById('close-plugin').onclick = function() {
+        // 隐藏插件并发送最终请求
+        document.getElementById('plugin-container').style.display = 'none';
+        sendFinalChat(document.querySelector('input[name="message"]').value);
+    };
+    
+    function highlightText(fullText, shortenedText) {
+        const regex = new RegExp(`(${shortenedText})`, 'gi');
+        console.log(fullText);
+        return fullText.replace(regex, '<mark>$1</mark>');
+    }
+
+    function submitAllChanges(message, changes) {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "{{ url_for('submit_changes') }}", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log("Changes submitted successfully.");
+                // Update UI with the new memory and chat history
+                const response = JSON.parse(xhr.responseText);
+
+                // Call functions to re-render memory and chat history
+                // updateMemoryUI(response.updated_memory);
+                renderUpdatedChatHistory(response.updated_chat_history);
+
+                // Optionally, close the popup or provide feedback to the user
+                document.getElementById('plugin-container').style.display = 'none';
+            }
+        };
+        const data = {
+            chat_name: "{{selected_chat}}",
+            changes: changes
+        };
+        xhr.send(JSON.stringify(data));
+    }
+
+    function renderUpdatedChatHistory(chatHistory) {
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML = '';  // Clear current messages
+
+        chatHistory.forEach(conversation => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = conversation.role === 'user' ? 'message user' : 'message assistant';
+            messageDiv.innerText = conversation.message;
+            messagesDiv.appendChild(messageDiv);
+        });
+    }
+    
+    </script>
+</body>
+</html>

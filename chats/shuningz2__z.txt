@@ -1,0 +1,16 @@
+shuningz2: 请帮我用学术、严谨、标准、简练的英文润色这段文本，要尽量保持原意但是要尽量简练，要表述清晰避免歧义，不要有任何歧义：”””Study 1, we measured perceived gain and loss in three types of typical take-over tasks with different safety risk: Route Selection~\cite{sheng2021trust},“”“
+assistant: In Study 1, we measured perceived gains and losses in three typical take-over tasks with varying safety risks: Route Selection~\cite{sheng2021trust}.
+shuningz2: 请帮我用学术、严谨、标准、简练的英文润色这段文本，要尽量保持原意但是要尽量简练，要表述清晰避免歧义，不要有任何歧义：”””Study 1, we measured perceived gain and loss in three types of typical take-over tasks with different safety risk: Route Selection~\cite{sheng2021trust},“”“
+assistant: In Study 1, we measured perceived gains and losses across three typical take-over tasks with varying safety risks: Route Selection~\cite{sheng2021trust}.
+shuningz2: 请帮我用学术、严谨、标准、简练的英文润色这段文本，要尽量保持原意但是要尽量简练，要表述清晰避免歧义，不要有任何歧义：”””Study 1, we measured perceived gain and loss in three types of typical take-over tasks with different safety risk: Route Selection~\cite{sheng2021trust},“”“
+assistant: In Study 1, we measured perceived gains and losses across three types of typical take-over tasks with varying safety risks, referencing Route Selection by Sheng et al. (2021).
+shuningz2: 请帮我用学术、严谨、标准、简练的英文润色这段文本，要尽量保持原意但是要尽量简练，要表述清晰避免歧义，不要有任何歧义：”””Study 1, we measured perceived gain and loss in three types of typical take-over tasks with different safety risk: Route Selection~\cite{sheng2021trust},“”“
+assistant: In Study 1, we measured perceived gains and losses in three typical take-over tasks with varying safety risks, as referenced in Route Selection ~\cite{sheng2021trust}.
+shuningz2: 请帮我用学术、严谨、标准、简练的英文润色这段文本，要尽量保持原意但是要尽量简练，要表述清晰避免歧义，不要有任何歧义：”””Study 1, we measured perceived gain and loss in three types of typical take-over tasks with different safety risk: Route Selection~\cite{sheng2021trust},“”“
+assistant: "Study 1 measured perceived gains and losses in three typical take-over tasks with varying safety risks: Route Selection~\cite{sheng2021trust}."
+shuningz2: 请帮我用学术、严谨、标准、简练的英文润色这段文本，要尽量保持原意但是要尽量简练，要表述清晰避免歧义，不要有任何歧义：”””Study 1, we measured perceived gain and loss in three types of typical take-over tasks with different safety risk: Route Selection~\cite{sheng2021trust},“”“
+assistant: In Study 1, we assessed perceived gains and losses in three typical take-over tasks with varying safety risks, as referenced in Route Selection~\cite{sheng2021trust}.
+shuningz2: 请帮我用学术、严谨、标准、简练的英文润色这段文本，要尽量保持原意但是要尽量简练，要表述清晰避免歧义，不要有任何歧义：”””Study 1, we measured perceived gain and loss in three types of typical take-over tasks with different safety risk: Route Selection~\cite{sheng2021trust},“”“
+assistant: In Study 1, we measured perceived gains and losses in three typical take-over tasks with varying safety risks: Route Selection~\cite{sheng2021trust}.
+shuningz2: 请帮我用学术、严谨、标准、简练的英文润色这段文本，要尽量保持原意但是要尽量简练，要表述清晰避免歧义，不要有任何歧义：”””Study 1, we measured perceived gain and loss in three types of typical take-over tasks with different safety risk: Route Selection~\cite{sheng2021trust},“”“
+assistant: In Study 1, we measured perceived gains and losses across three types of typical take-over tasks with varying safety risks: Route Selection~\cite{sheng2021trust}.

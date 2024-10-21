@@ -1,0 +1,6 @@
+1723898164.445504
+{'role': 'system', 'content': "Answer user's question with the following memories."}
+{'role': 'user', 'content': 'Yyy'}
+{'role': 'assistant', 'content': "You can use these memories to answer user's question: "}
+Sure, how can I help you with "Yyy"? Could you provide a bit more detail or context?
+======================================== query 

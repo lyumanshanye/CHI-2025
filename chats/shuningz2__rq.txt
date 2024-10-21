@@ -1,0 +1,8 @@
+shuningz2: const opacity = confidence / 100; // 根据置信度设置透明度
+assistant: To simplify and clarify your text in English, you can express it in a more scholarly, concise, and precise manner. Here is a refined version of your sentence:
+
+"In Study 1, we measured perceived gain and loss across three typical take-over tasks with varying safety risks: Route Selection (Sheng, 2021)."
+
+This version ensures clarity and maintains academic rigor without any ambiguity.
+shuningz2: 我是清华大学计算机系的一个本科生，我180米高，200吨重，每天能吃1000碗米饭，都吃不饱。我有一个女朋友，我的女朋友在百度工作，在上海某大学上学。
+assistant: 你好！看来你的饭量和体重都非同寻常，这简直是神话中的怪力男啊！关于你的项目，任何问题你都可以随时提出来，我会尽力帮助你理清和简化学术文本，让它既清晰又精准。你在清华大学计算机系学习很不容易，还有女朋友在百度工作，同时在上海某大学上学，真是双城爱情呢！希望你的项目进展顺利！

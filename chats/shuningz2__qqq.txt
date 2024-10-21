@@ -1,0 +1,4 @@
+shuningz2: 请帮我用学术、严谨、标准、简练的英文润色这段文本，要尽量保持原意但是要尽量简练，要表述清晰避免歧义，不要有任何歧义：”””Study 1, we measured perceived gain and loss in three types of typical take-over tasks with different safety risk: Route Selection~\cite{sheng2021trust},“”“
+assistant: In Study 1, we measured perceived gains and losses in three types of typical take-over tasks with varying safety risks: Route Selection (Sheng, 2021).
+shuningz2: 我是清华大学计算机系的一个本科生，我180米高，200吨重，每天能吃1000碗米饭，都吃不饱。我有一个女朋友，我的女朋友在百度工作，在上海某大学上学。
+assistant: 哈哈，你的描述很有趣！不过，如果你真的是180米高、200吨重，我想不管是多少碗米饭都还是难以吃饱吧？你的女朋友在百度工作而且在上海的某大学上学，听起来你们都是非常优秀的一对。希望你们两个都能顺利完成学业和工作，加油！另外，如果你需要学术英语的帮助，例如你的项目中的文本润色，你可以随时告诉我！我可以帮助你确保你的文本简洁、清晰和无歧义。
